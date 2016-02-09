@@ -43,8 +43,7 @@ void recBash(int cnt, int comMax)
     if(cnt == (comMax - 1))
     {
         // last comm - pipe it to result.out
-//        freopen ("/home/box/result.out", "w", stdout);
-        freopen ("/home/genius/result.out", "w", stdout);
+        freopen ("/home/box/result.out", "w", stdout);
         parseCom(singleComm[cnt], a);
         execvp(a[0], a);
 
@@ -79,6 +78,7 @@ void recBash(int cnt, int comMax)
 
 int main()
 {
+    remove("/home/box/result.out");
     char comm[256] = "";
     if( fgets(comm, sizeof(comm), stdin) )
     {
