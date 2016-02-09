@@ -100,6 +100,7 @@ int main()
             }
         }
         singleComm[comCnt][n] = 0;
+        if(singleComm[comCnt][n - 1 == ' ']) singleComm[comCnt][--n] = 0;
         comCnt++;
 
         recBash(0, comCnt);
