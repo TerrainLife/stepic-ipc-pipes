@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <wait.h>
 
 using namespace std;
 
@@ -40,38 +41,40 @@ void recBash(int cnt, int comMax)
     for (int i = 0; i < 8; i++)
         a[i] = comParseAr[i];
 
-    if(cnt == (comMax - 1))
+    if(cnt == 0)
     {
-        // last comm - pipe it to result.out
-        freopen ("/home/box/result.out", "w", stdout);
+        // first comm
         parseCom(singleComm[cnt], a);
         execvp(a[0], a);
-
-        return;
     }
 
     pipe(fd);
     if(int res = fork())
     {
         // parent
-        close(fd[FD_RD]);
-        close(STDOUT_FILENO);
-        dup2(fd[FD_WR], STDOUT_FILENO); // pipe wr end = stdout
-        close(fd[FD_WR]);
-        parseCom(singleComm[cnt], a);
-        execvp(a[0], a);
+        if(cnt == (comMax - 1)) // last comm
+        {
+            // last comm - pipe it to result.out
+            freopen ("/home/box/result.out", "w", stdout);
+        }
 
-        return;
-    }
-    else if(res == 0)
-    {
-        // child
         close(fd[FD_WR]);
         close(STDIN_FILENO);
         dup2(fd[FD_RD], STDIN_FILENO); // pipe wr end = stdout
         close(fd[FD_RD]);
 
-        recBash(++cnt, comMax);
+        parseCom(singleComm[cnt], a);
+        execvp(a[0], a);
+    }
+    else if(res == 0)
+    {
+        // child
+        close(fd[FD_RD]);
+        close(STDOUT_FILENO);
+        dup2(fd[FD_WR], STDOUT_FILENO); // pipe wr end = stdout
+        close(fd[FD_WR]);
+
+        recBash(--cnt, comMax);
     }
     else return;    // err
 }
@@ -100,10 +103,10 @@ int main()
             }
         }
         singleComm[comCnt][n] = 0;
-        if(singleComm[comCnt][n - 1 == ' ']) singleComm[comCnt][--n] = 0;
+        if(singleComm[comCnt][n - 1] == ' ') singleComm[comCnt][--n] = 0;
         comCnt++;
 
-        recBash(0, comCnt);
+        recBash(comCnt - 1, comCnt);
     }
 
     return 0;
