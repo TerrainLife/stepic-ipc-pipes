@@ -33,15 +33,23 @@ void parseCom(char *inComm, char **outComm)
     outComm[++argc] = NULL;
 }
 
-void recBash(int cnt, int comMax)
+void recBash(int cnt1, int comMax)
 {
     int fd[2];
+    int cnt = cnt1;
     char comParseAr[8][16];
     char *a[8];
     for (int i = 0; i < 8; i++)
         a[i] = comParseAr[i];
 
-    if(cnt == 0)
+    if(cnt == comMax) // last comm
+    {
+        // last comm - pipe it to result.out
+//            freopen ("/home/box/result.out", "w", stdout);
+        freopen ("/home/genius/result.out", "w", stdout);
+    }
+
+    if(cnt-- <= 1)
     {
         // first comm
         parseCom(singleComm[cnt], a);
@@ -52,12 +60,6 @@ void recBash(int cnt, int comMax)
     if(int res = fork())
     {
         // parent
-        if(cnt == (comMax - 1)) // last comm
-        {
-            // last comm - pipe it to result.out
-            freopen ("/home/box/result.out", "w", stdout);
-        }
-
         close(fd[FD_WR]);
         close(STDIN_FILENO);
         dup2(fd[FD_RD], STDIN_FILENO); // pipe wr end = stdout
@@ -74,14 +76,14 @@ void recBash(int cnt, int comMax)
         dup2(fd[FD_WR], STDOUT_FILENO); // pipe wr end = stdout
         close(fd[FD_WR]);
 
-        recBash(--cnt, comMax);
+        recBash(cnt, comMax);
     }
     else return;    // err
 }
 
 int main()
 {
-    remove("/home/box/result.out");
+//    remove("/home/box/result.out");
     char comm[256] = "";
     if( fgets(comm, sizeof(comm), stdin) )
     {
@@ -106,7 +108,7 @@ int main()
         if(singleComm[comCnt][n - 1] == ' ') singleComm[comCnt][--n] = 0;
         comCnt++;
 
-        recBash(comCnt - 1, comCnt);
+        recBash(comCnt, comCnt);
     }
 
     return 0;
